@@ -7,31 +7,62 @@
 
 import fs from "fs";
 import express from "express";
+import path from "path";
 
 const app = express();
 const port = 3000;
-const staticDir = "dist/web/";
-const uploadDir = "uploads/";
+const maxUploadSize = "100mb";
+const distRoot = path.join(__dirname, "../");
+const staticDir = path.join(distRoot, "web/");
+const sourceDir = path.join(distRoot, "../web/");
+const uploadDir = path.join(distRoot, "../uploads/");
 
-app.use(express.static("dist/web/"));
+console.log(`Static dir: ${staticDir}`);
+console.log(`Source dir: ${sourceDir}`);
+console.log(`Upload dir: ${uploadDir}`);
+
+app.use(express.static(staticDir));
+app.use(express.static(sourceDir));
 app.use(express.static("uploads/"));
-app.use(express.json());
-
-let images: string[] = [];
+app.use(express.json({ limit: maxUploadSize }));
 
 const watchOpts = { persistent: false, recursive: true };
 
-fs.watch(uploadDir, watchOpts, (event: string, filename: string) => {
-  console.log(`Event: ${event} for file: ${filename}`);
+// Make sure the upload directory exists.
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+let images: string[] = [];
+let refreshTimeout: NodeJS.Timeout | null = null;
+
+const updateImageList = () => {
   fs.readdir(uploadDir, (err: unknown, files: string[]) => {
     if (err) {
       console.error(err);
       return;
     }
 
-    images = files;
+    images = files.filter((file) => !file.endsWith(".json"));
+    console.log("Updated image list:", images.length, images);
   });
-});
+};
+updateImageList();
+
+fs.watch(
+  uploadDir,
+  watchOpts,
+  (event: string, filename: string | Buffer | null) => {
+    console.log(`Event: ${event} for file: ${filename}`);
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+    refreshTimeout = setTimeout(() => {
+      refreshTimeout = null;
+      updateImageList();
+    }, 1000);
+  },
+);
 
 // Serve the list of images that can be viewed.
 app.get("/image-list", (req: express.Request, res: express.Response) => {
@@ -41,30 +72,39 @@ app.get("/image-list", (req: express.Request, res: express.Response) => {
 // Serve the image file and metadata file.
 app.get("/image/:filename", (req: express.Request, res: express.Response) => {
   const filename = req.params.filename;
-  res.sendFile(`${uploadDir}${filename}`);
+  res.sendFile(filename, { root: uploadDir }, (err: unknown) => {
+    if (err && (err as { code: string }).code != "EPIPE") {
+      console.error("Failed to serve image:", filename, err);
+    } else {
+      console.log(`Served: ${uploadDir}${filename}`);
+    }
+  });
 });
 
 // Upload an image, and additional metadata about the image.
-app.post("/upload", (req: express.Request, res: express.Response) => {
+app.post("/upload", async (req: express.Request, res: express.Response) => {
   const { image, metadata, name } = req.body;
-  const imageBuffer = Buffer.from(image, "base64");
+  const imageBuffer = Buffer.from(image.split(",")[1], "base64");
+  let waitFor = 2;
+
+  const informStatus = (error: string | null) => {
+    if (error) {
+      console.error(error);
+      res.status(500).send("Failed to save image");
+      waitFor = 0;
+    } else if (--waitFor === 0) {
+      res.send("Image uploaded successfully");
+    }
+  };
 
   fs.writeFile(`${uploadDir}${name}`, imageBuffer, (err: unknown) => {
-    if (err) {
-      console.error(err);
-      res.status(500).send("Failed to save image");
-      return;
-    }
+    informStatus(err as string);
   });
   fs.writeFile(
     `${uploadDir}${name}.json`,
     JSON.stringify(metadata),
     (err: unknown) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send("Failed to save metadata");
-        return;
-      }
+      informStatus(err as string);
     },
   );
 });

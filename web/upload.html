@@ -1,0 +1,19 @@
+<!-- Basic HTML form for uploading an image and caption. -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <div class="upload-container">
+    <form action="javascript:void(0);">
+      <input type="file" name="image" id="image-input" accept="image/*">
+      <input type="text" name="title" id="title-input" placeholder="Title">
+      <input type="submit" value="Upload" id="upload-button">
+    </form>
+    <img id="preview" style="max-width: 90vw; max-height: 90vh"/>
+  </div>
+  <script src="upload.js"></script>
+</body>
+</html>

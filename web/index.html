@@ -14,18 +14,21 @@
     The slideshow will loop back to the first image after the last image.
   -->
   <div class="slideshow-container">
-    <div id="background" class="background">
+    <div id="background-container" >
       <!-- We swap between these two images to create a fade effect. -->
       <img id="background-image-1" />
       <img id="background-image-2" />
     </div>
-    <div id="slide" class="slide">
+    <div id="slide-container">
       <!-- We swap between these two images to create a fade effect. -->
-      <img id="slide-image-1" />
-      <img id="slide-image-2" />
-    </div>
-    <div id="caption" class="caption">
-      <p id="caption-text"></p>
+      <div id="slide-1" class="slide">
+        <p id="slide-title-1" class="title"></p>
+        <img id="slide-image-1" class="slide-image" />
+      </div>
+      <div id="slide-2" class="slide">
+        <p id="slide-title-2" class="title"></p>
+        <img id="slide-image-2" class="slide-image" />
+      </div>
     </div>
   </div>
   <script src="index.js"></script>
