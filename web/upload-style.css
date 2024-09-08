@@ -1,0 +1,21 @@
+#file-list {
+  font-size: 0.5em;
+  display: inline-block;
+  vertical-align: top;
+}
+#file-list li {
+  cursor: pointer;
+}
+#file-list li:hover {
+  background-color: #111;
+}
+#file-list li.selected {
+  background-color: #112;
+}
+#file-list li.warning {
+  background-color: #331;
+}
+#preview-container {
+  display: inline-block;
+  vertical-align: top;
+}

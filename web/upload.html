@@ -4,6 +4,7 @@
 <head>
     <title>Upload</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="upload-style.css">
 </head>
 <body>
   <div class="upload-container">
@@ -11,8 +12,14 @@
       <input type="file" name="image" id="image-input" accept="image/*">
       <input type="text" name="title" id="title-input" placeholder="Title">
       <input type="submit" value="Upload" id="upload-button">
+      <input type="button" value="Preview" id="preview-button">
     </form>
-    <img id="preview" style="max-width: 90vw; max-height: 90vh"/>
+    <ul id="file-list">
+    </ul>
+    <div id="preview-container">
+      <p id="title-preview"></p>
+      <img id="preview" style="max-width: 90vw; max-height: 90vh"/>
+    </div>
   </div>
   <script src="upload.js"></script>
 </body>
