@@ -32,6 +32,8 @@ class TitledSlideshow {
     fetch("/image-list")
       .then((response) => response.json())
       .then((data) => {
+        data.sort(() => Math.random() - 0.5);
+
         this.imageList = data;
         this.currentImageIndex = -1;
         console.log("Fetched image list", this.imageList);
